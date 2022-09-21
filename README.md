@@ -17,7 +17,7 @@ $ npm i dot-logs
 ```javascript
 import DotLogs from 'dot-logs';
 
-cons log = new DotLogs();
+const log = new DotLogs();
 log.info('my awesome log');
 ```
 
