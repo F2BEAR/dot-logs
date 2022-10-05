@@ -1,86 +1,93 @@
-import winston from 'winston';
-
-const levels = {
-	error: 0,
-	warn: 1,
-	info: 2,
-	http: 3,
-	verbose: 4,
-	debug: 5,
-};
-
-const level = () => {
-	const env = process.env.NODE_ENV || 'development';
-	const isDevelopment = env === 'development';
-	return isDevelopment ? 'debug' : 'http';
-};
-
-const colors = {
-	error: 'red',
-	warn: 'yellow',
-	info: 'magenta',
-	http: 'blue',
-	verbose: 'green',
-	debug: 'white',
-};
-
-winston.addColors(colors);
-
-const format = winston.format.combine(
-	winston.format.timestamp({ format: 'YYYYMMDD HH:mm:ss' }),
-	winston.format.printf(
-		(info) => `${info.timestamp} ${info.level}: ${info.message}`,
-	),
-);
-
-const transports = [
-	new winston.transports.Console({
-		format: winston.format.colorize({ all: true }),
-	}),
-	new winston.transports.File({
-		filename: 'logs/error.log',
-		level: 'error',
-	}),
-	new winston.transports.File({
-		filename: 'logs/info.log',
-		level: 'info',
-	}),
-	new winston.transports.File({ filename: 'logs/all.log' }),
-];
-
-const logger = winston.createLogger({
-	level: level(),
-	levels,
-	format,
-	transports,
-	exitOnError: false,
-});
+import winston, { transports, format, Logger } from 'winston';
+import { join } from 'path';
 
 export default class DotLogs {
-	static instance: DotLogs;
-	constructor() {
-		if (typeof DotLogs.instance == 'object') {
-			return DotLogs.instance;
-		}
-		DotLogs.instance = this;
-		return this;
+
+	private readonly  colors = {
+		error: 'red',
+		warn: 'yellow',
+		info: 'magenta',
+		http: 'blue',
+		verbose: 'green',
+		debug: 'white',
+	};
+
+	private readonly addColors = winston.addColors(this.colors);
+	private logger: Logger;
+	private transport: any[];
+	private logPath: string = 'logs';
+
+	constructor(logPath: string ) {
+		this.logPath = logPath;
+		this.addColors;
+		this.transport = [
+			new transports.Console({
+				format: winston.format.colorize({ all: true }),
+			}),
+			new transports.File({
+				filename: join(this.logPath, '/error.log'),
+				level: 'error',
+			}),
+			new transports.File({
+				filename: join(this.logPath, '/info.log'),
+				level: 'info',
+			}),
+			new transports.File({ filename: join(this.logPath, '/all.log')}),
+		]
+
+		this.logger = winston.createLogger({
+			level: this.level(),
+			levels: this.levels,
+			format: this.formats,
+			transports: this.transport,
+			exceptionHandlers: [
+				new transports.File({ filename: join(this.logPath, '/exceptions.log')}),
+				new transports.Console({
+					format: winston.format.colorize({ all: true }),
+				}),
+			],
+			exitOnError: false,
+		});
 	}
+
+	private readonly levels = {
+		error: 0,
+		warn: 1,
+		info: 2,
+		http: 3,
+		verbose: 4,
+		debug: 5,
+	};
+
+	private readonly level = () => {
+		const env = process.env.NODE_ENV || 'development';
+		const isDevelopment = env === 'development';
+		return isDevelopment ? 'debug' : 'http';
+	};
+
+	private readonly formats = format.combine(
+		format.timestamp({ format: 'YYYYMMDD HH:mm:ss' }),
+		format.printf(
+			(info) => `${info.timestamp} ${info.level}: ${info.message}`,
+		),
+	);
+
 	error(message?: string) {
-		logger.error(message);
+		this.logger.error(message);
 	}
 	warn(message?: string) {
-		logger.warn(message);
+		this.logger.warn(message);
 	}
 	info(message?: string) {
-		logger.info(message);
+		this.logger.info(message);
 	}
 	http(message?: string) {
-		logger.http(message);
+		this.logger.http(message);
 	}
 	debug(message?: string) {
-		logger.debug(message);
+		this.logger.debug(message);
 	}
 	verbose(message?: string) {
-		logger.verbose(message);
+		this.logger.verbose(message);
 	}
 }

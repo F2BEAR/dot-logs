@@ -10,22 +10,20 @@ export default [
 			{
 				file: 'lib/index.mjs',
 				format: 'es',
-				sourcemap: false,
 				exports: 'named',
 			},
 			{
 				file: 'lib/index.js',
 				format: 'cjs',
-				sourcemap: false,
 				exports: 'default'
 			},
 			
 		],
-		external: ['winston'],
+		external: ['winston', 'path'],
 		plugins: [
 			license({
 				banner:
-					'Copyright (c) 2022 Facundo Carbonel / LogIt\n\nThis source code is licensed under the MIT license found in the\nLICENSE file in the root directory of this source tree.',
+					'Copyright (c) 2022 Facundo Carbonel / Dot-Logs\n\nThis source code is licensed under the MIT license found in the\nLICENSE file in the root directory of this source tree.',
 			}),
 			cleanup({ comments: 'license' }),
 			process.env.NODE_ENV === 'production' &&
